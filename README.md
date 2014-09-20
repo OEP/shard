@@ -13,7 +13,8 @@ Project][http://modules.sourceforge.net/].
 ## Installation and Usage
 
 For a system wide install, put `shard.sh` in `/etc/profile.d` or some
-equivalent for your distribution. Feel free to fully qualify
+equivalent for your distribution. Feel free to fully qualify the path to
+`shardcmd`, but it is not required.
 
     install -m 0644 shard.sh /etc/profile.d/
     install -m 0755 shardcmd /usr/local/bin/
