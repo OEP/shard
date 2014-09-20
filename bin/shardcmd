@@ -4,18 +4,23 @@ import os
 import sys
 
 PROG = 'shard'
+USAGE = '%prog [options] load|unload path [path...]'
+
+class OptionParser(optparse.OptionParser):
+  def error(self, message):
+    sys.stderr.write("%s: %s\n" % (self.prog, message))
+    self.print_usage(file=sys.stderr)
+    sys.exit(1)
 
 class CommandError(Exception):
-  def __init__(self, message, status=1):
+  def __init__(self, message, usage=False, status=1):
     self.message = message
     self.status = status
+    self.usage = usage
 
 def puts(line, fp=None):
   fp = fp or sys.stdout
   fp.write(line + '\n')
-
-def raise_usage(usage):
-  raise CommandError('Usage: %s %s' % (PROG, usage))
 
 def get_environ_list(var):
   if var in os.environ:
@@ -36,7 +41,7 @@ def environ_update(env, var, path, prepend):
 
 def cmd_load(opt, args):
   if not args:
-    raise_usage('load path [path...]')
+    raise CommandError('expected at least one path', usage=True)
   env = {}
   for path in args:
     if not os.path.exists(path):
@@ -66,10 +71,10 @@ def dispatch(opt, args):
     'unload': cmd_unload,
   }
   if not len(args) >= 1:
-    raise CommandError("Expected subcommand: %s" % ", ".join(commands.keys()))
+    raise CommandError("Expected subcommand", usage=True)
   cmd, args = args[0], args[1:]
   if not cmd in commands:
-    raise CommandError('Unknown subcommand %s' % cmd)
+    raise CommandError('Unknown subcommand %s' % cmd, usage=True)
   fn = commands[cmd]
   fn(opt, args)
 
@@ -79,12 +84,14 @@ def main():
   try:
     dispatch(opt, args)
   except CommandError as e:
-    sys.stderr.write(e.message + "\n")
+    sys.stderr.write('%s: %s\n' % (parser.prog, e.message))
+    if e.usage:
+      parser.print_usage(file=sys.stderr)
     sys.exit(e.status)
   sys.exit(0)
 
 def get_parser():
-  parser = optparse.OptionParser()
+  parser = OptionParser(prog=PROG, usage=USAGE)
   parser.add_option('--prepend', '-p', action='store_true', default=False,
                     help='Prepend instead of append argument.')
   return parser
