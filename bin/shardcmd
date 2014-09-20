@@ -23,12 +23,15 @@ def get_environ_list(var):
   else:
     return []
 
-def environ_update(env, var, path):
+def environ_update(env, var, path, prepend):
   if var in env:
     p = env[var]
   else:
     p = get_environ_list(var)
-  p.append(path)
+  if not prepend:
+    p.append(path)
+  else:
+    p.insert(0, path)
   env[var] = p
 
 def cmd_load(opt, args):
@@ -44,9 +47,9 @@ def cmd_load(opt, args):
     bindir = os.path.join(abspath, 'bin')
     libdir = os.path.join(abspath, 'lib')
     if os.path.isdir(bindir):
-      environ_update(env, 'PATH', bindir)
+      environ_update(env, 'PATH', bindir, opt.prepend)
     if os.path.isdir(libdir):
-      environ_update(env, 'LD_LIBRARY_PATH', libdir)
+      environ_update(env, 'LD_LIBRARY_PATH', libdir, opt.prepend)
   for k, v in env.iteritems():
     ctx = {
       'name': k,
@@ -82,6 +85,8 @@ def main():
 
 def get_parser():
   parser = optparse.OptionParser()
+  parser.add_option('--prepend', '-p', action='store_true', default=False,
+                    help='Prepend instead of append argument.')
   return parser
 
 if __name__ == "__main__":
