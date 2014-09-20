@@ -23,25 +23,36 @@ def get_environ_list(var):
   else:
     return []
 
+def environ_update(env, var, path):
+  if var in env:
+    p = env[var]
+  else:
+    p = get_environ_list(var)
+  p.append(path)
+  env[var] = p
+
 def cmd_load(opt, args):
-  if not len(args) == 1:
-    raise_usage('load path')
-  path, = args
-  if not os.path.exists(path):
-    raise CommandError("Path does not exist: %s" % path)
-  if not os.path.isdir(path):
-    raise CommandError("Path is not a directory: %s" % path)
-  abspath = os.path.abspath(path)
-  bindir = os.path.join(abspath, 'bin')
-  libdir = os.path.join(abspath, 'lib')
-  if os.path.isdir(bindir):
-    p = get_environ_list('PATH')
-    p.append(bindir)
-    puts("PATH=%s; export PATH" % ":".join(p))
-  if os.path.isdir(libdir):
-    p = get_environ_list('LD_LIBRARY_PATH')
-    p.append(libdir)
-    puts("LD_LIBRARY_PATH=%s; export LD_LIBRARY_PATH" % ":".join(p))
+  if not args:
+    raise_usage('load path [path...]')
+  env = {}
+  for path in args:
+    if not os.path.exists(path):
+      raise CommandError("Path does not exist: %s" % path)
+    if not os.path.isdir(path):
+      raise CommandError("Path is not a directory: %s" % path)
+    abspath = os.path.abspath(path)
+    bindir = os.path.join(abspath, 'bin')
+    libdir = os.path.join(abspath, 'lib')
+    if os.path.isdir(bindir):
+      environ_update(env, 'PATH', bindir)
+    if os.path.isdir(libdir):
+      environ_update(env, 'LD_LIBRARY_PATH', libdir)
+  for k, v in env.iteritems():
+    ctx = {
+      'name': k,
+      'value': ':'.join(v),
+    }
+    puts('%(name)s=%(value)s; export %(name)s' % ctx)
 
 def cmd_unload(opt, args):
   raise CommandError('Not yet implemented.')
