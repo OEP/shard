@@ -7,4 +7,4 @@
 # It is meant to be sourced while in the containing directory.
 #
 . ./shard.sh
-PATH="bin:${PATH}" shard load .
+PATH="${PATH}:`pwd`/bin"
