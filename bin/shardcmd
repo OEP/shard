@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+import optparse
+import os
+import sys
+
+PROG = 'shard'
+
+class CommandError(Exception):
+  def __init__(self, message, status=1):
+    self.message = message
+    self.status = status
+
+def puts(line, fp=None):
+  fp = fp or sys.stdout
+  fp.write(line + '\n')
+
+def raise_usage(usage):
+  raise CommandError('Usage: %s %s' % (PROG, usage))
+
+def get_environ_list(var):
+  if var in os.environ:
+    return os.environ[var].split(':')
+  else:
+    return []
+
+def cmd_load(opt, args):
+  if not len(args) == 1:
+    raise_usage('load path')
+  path, = args
+  if not os.path.exists(path):
+    raise CommandError("Path does not exist: %s" % path)
+  if not os.path.isdir(path):
+    raise CommandError("Path is not a directory: %s" % path)
+  abspath = os.path.abspath(path)
+  bindir = os.path.join(abspath, 'bin')
+  libdir = os.path.join(abspath, 'lib')
+  if os.path.isdir(bindir):
+    p = get_environ_list('PATH')
+    p.append(bindir)
+    puts("PATH=%s; export PATH" % ":".join(p))
+  if os.path.isdir(libdir):
+    p = get_environ_list('LD_LIBRARY_PATH')
+    p.append(libdir)
+    puts("LD_LIBRARY_PATH=%s; export LD_LIBRARY_PATH" % ":".join(p))
+
+def cmd_unload(opt, args):
+  raise CommandError('Not yet implemented.')
+
+def dispatch(opt, args):
+  commands = {
+    'load': cmd_load,
+    'unload': cmd_unload,
+  }
+  if not len(args) >= 1:
+    raise CommandError("Expected subcommand: %s" % ", ".join(commands.keys()))
+  cmd, args = args[0], args[1:]
+  if not cmd in commands:
+    raise CommandError('Unknown subcommand %s' % cmd)
+  fn = commands[cmd]
+  fn(opt, args)
+
+def main():
+  parser = get_parser()
+  opt, args = parser.parse_args()
+  try:
+    dispatch(opt, args)
+  except CommandError as e:
+    sys.stderr.write(e.message + "\n")
+    sys.exit(e.status)
+  sys.exit(0)
+
+def get_parser():
+  parser = optparse.OptionParser()
+  return parser
+
+if __name__ == "__main__":
+  main()
