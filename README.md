@@ -8,7 +8,7 @@ though more could be.
 
 It is mainly meant to be useful in user space for people who like to play fast
 and loose with their environment. It is inspired by the [Environment Modules
-Project][http://modules.sourceforge.net/].
+Project](http://modules.sourceforge.net/).
 
 ## Installation and Usage
 
