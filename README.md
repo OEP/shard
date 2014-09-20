@@ -36,11 +36,8 @@ Shard modules are just directories that follow a typical Linux filesystem
 hierarchy described in `hier (7)`. Shard does the following things when finding
 the subpaths in the provided `path` argument:
 
-  lib/
-    Appends the absolute path to `$LD_LIBRARY_PATH` and exports.
-  
-  bin/
-    Appends the absolute path to `$PATH` and exports.
+- `lib` Appends the absolute path to `$LD_LIBRARY_PATH` and exports.
+- `bin` Appends the absolute path to `$PATH` and exports.
 
 ## Shells
 
